@@ -398,6 +398,11 @@ footer{color:var(--muted);font-size:.85rem;padding-block:22px 10px;text-align:ce
       <div class="cardhead"><div class="t"><svg class="ic lg"><use href="#i-bell"/></svg><h3>Coming up</h3></div><button class="link" data-go="jobs">All jobs</button></div>
       <div id="h-jobs"></div>
     </div>
+    <div class="card" style="display:grid;gap:12px">
+      <div class="cardhead" style="margin:0"><div class="t"><svg class="ic lg"><use href="#i-candy"/></svg><div><h3>Backup and move</h3><p style="color:var(--muted);font-size:.9rem">Copy your whole list, then paste it into another copy of the planner.</p></div></div></div>
+      <div class="actions"><button class="btn alt" id="bk-copy" type="button">Copy backup</button><button class="btn alt" id="bk-restore" type="button">Paste a backup</button></div>
+      <p id="bk-msg" class="notice" hidden></p>
+    </div>
   </section>
 
   <!-- PEOPLE -->
@@ -517,6 +522,17 @@ footer{color:var(--muted);font-size:.85rem;padding-block:22px 10px;text-align:ce
       <button type="button" class="btn danger small" id="g-delete" hidden>Delete</button>
       <div class="right"><button type="button" class="btn alt" data-close>Cancel</button><button type="submit" class="btn">Save</button></div>
     </div>
+  </form>
+</dialog>
+
+<!-- Backup dialog -->
+<dialog id="dlg-backup">
+  <form class="dlg" id="backup-form" method="dialog">
+    <h2><svg class="ic lg"><use href="#i-candy"/></svg><span id="bk-title">Paste a backup</span></h2>
+    <p id="bk-help" style="color:var(--muted)"></p>
+    <div class="field"><label for="bk-text">Backup</label><textarea id="bk-text" style="min-height:140px;font-size:.8rem"></textarea></div>
+    <p id="bk-err" class="notice" hidden></p>
+    <div class="dlg-actions"><div class="right"><button type="button" class="btn alt" data-close>Cancel</button><button type="submit" class="btn" id="bk-go">Restore</button></div></div>
   </form>
 </dialog>
 
@@ -794,13 +810,55 @@ footer{color:var(--muted);font-size:.85rem;padding-block:22px 10px;text-align:ce
     const local=S[coll];const i=local.findIndex(x=>x.id===id);
     const full={...(i>=0?local[i]:{}),...data,id};
     if(db){try{const {id:_,...body}=full;await db.collection(coll).doc(id).set(body)}catch(e){console.error(e);flash("That didn't save. Check your connection and try again.")}}
-    else{if(i>=0)local[i]=full;else local.push(full);render()}
+    else{if(i>=0)local[i]=full;else local.push(full);persist();render()}
   }
   async function remove(coll,id){
     if(db){try{await db.collection(coll).doc(id).delete()}catch(e){console.error(e);flash("That didn't delete. Check your connection and try again.")}}
-    else{S[coll]=S[coll].filter(x=>x.id!==id);render()}
+    else{S[coll]=S[coll].filter(x=>x.id!==id);persist();render()}
   }
   function flash(msg){const n=$("offline");n.hidden=false;n.textContent=msg}
+
+  /* Saving on this device, for copies that open outside Claude */
+  const KEY="pene-christmas-planner-v1";
+  let deviceSave=false;
+  function persist(){
+    if(!deviceSave)return;
+    try{localStorage.setItem(KEY,JSON.stringify({people:S.people,gifts:S.gifts,jobs:S.jobs,savedAt:Date.now()}))}
+    catch(e){flash("This browser won't let the planner save. Turn off private browsing and try again.")}
+  }
+  function loadDevice(){
+    try{const raw=localStorage.getItem(KEY);if(!raw)return false;const d=JSON.parse(raw);
+      ["people","gifts","jobs"].forEach(c=>{if(Array.isArray(d[c]))S[c]=d[c]});return true}
+    catch(e){return false}
+  }
+
+  /* Backup and move */
+  let bkMode="restore";
+  function backupText(){return JSON.stringify({app:"pene-christmas-planner",v:1,people:S.people,gifts:S.gifts,jobs:S.jobs})}
+  function bkMsg(t){$("bk-msg").textContent=t;$("bk-msg").hidden=!t}
+  function openBackup(mode,text){
+    bkMode=mode;$("bk-title").textContent=mode==="copy"?"Copy your backup":"Paste a backup";
+    $("bk-help").textContent=mode==="copy"?"Select all of this text and copy it, then paste it into the other copy of your planner.":"Paste a backup copied from the other copy of your planner. Anything with the same name is updated and nothing is deleted.";
+    $("bk-text").value=text||"";$("bk-text").readOnly=mode==="copy";$("bk-go").textContent=mode==="copy"?"Done":"Restore";$("bk-err").hidden=true;
+    $("dlg-backup").showModal();if(mode==="copy"){$("bk-text").focus();$("bk-text").select()}
+  }
+  $("bk-copy").addEventListener("click",()=>{
+    const t=backupText();
+    try{navigator.clipboard.writeText(t).then(()=>bkMsg("Backup copied. Open the other copy of your planner and tap Paste a backup."),()=>openBackup("copy",t))}
+    catch(e){openBackup("copy",t)}
+  });
+  $("bk-restore").addEventListener("click",()=>openBackup("restore",""));
+  $("backup-form").addEventListener("submit",async e=>{
+    e.preventDefault();
+    if(bkMode==="copy"){$("dlg-backup").close();return}
+    let d;try{d=JSON.parse($("bk-text").value.trim())}catch(err){d=null}
+    if(!d||d.app!=="pene-christmas-planner"){$("bk-err").hidden=false;$("bk-err").textContent="That doesn't look like a planner backup. Copy it again and paste the whole thing.";return}
+    $("bk-go").disabled=true;$("bk-go").textContent="Restoring...";
+    const n={people:0,gifts:0,jobs:0};
+    for(const c of ["people","gifts","jobs"])for(const it of (Array.isArray(d[c])?d[c]:[])){if(!it||!it.id)continue;const {id,...body}=it;await save(c,String(id),body);n[c]++}
+    $("bk-go").disabled=false;$("dlg-backup").close();
+    bkMsg(`Restored ${n.people} ${plural(n.people,"person","people")}, ${n.gifts} ${plural(n.gifts,"gift")} and ${n.jobs} ${plural(n.jobs,"job")}.`);
+  });
 
   /* ---------- Dialogs ---------- */
   document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog").close()));
@@ -944,7 +1002,12 @@ Reply with only JSON: an array of 5 objects with keys "title" (under 60 characte
   /* ---------- Connect ---------- */
   (async()=>{
     try{db=window.claude?await window.claude.use("db"):null}catch(e){db=null}
-    if(!db){$("offline").hidden=false;return}
+    if(!db){
+      deviceSave=true;const had=loadDevice();render();
+      const n=$("offline");n.hidden=false;
+      n.textContent=had?"Your list is saved on this phone. It's separate from the planner inside Claude, so use Backup and move at the bottom of Home to copy lists between them."
+        :"This copy saves on this phone only. To bring in your list from Claude, open the planner in Claude, tap Copy backup at the bottom of Home, then come back here and tap Paste a backup.";
+      return}
     ["people","gifts","jobs"].forEach(c=>{
       db.collection(c).onSnapshot(snap=>{S[c]=snap.docs.map(d=>({...d.data(),id:d.id}));render()},
         err=>{console.error(err);flash("Your planner lost its connection. Reload the page to reconnect.")});
