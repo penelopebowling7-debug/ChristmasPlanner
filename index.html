@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Carlito:wght@400;700&display=swap">
 <style>
 /* Layout: phone first. Slim cherry header, one view at a time, tab bar at the thumb with a big + in the middle.
-   Home fits the essentials in about one screen: progress rows, a "Do next" list you can action in place, budget line, people strip.
+   Home is a visual summary only: % ready ring, money (budget, estimate, spent), gifts by status, and everyone on the list.
    Aussie summer Christmas: cherry, pine, sunshine gold. */
 :root{
   --bg:#F4F8F6; --card:#FFFFFF; --ink:#12302A; --muted:#58706A; --line:#D7E5E0; --track:#E3ECE8; --soft:#EEF4F1;
@@ -185,6 +185,47 @@ textarea{min-height:70px;resize:vertical}
 .sp .stock{width:46px;height:46px}
 .sp b{font-family:var(--display);font-size:.88rem;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sp small{display:flex;align-items:center;gap:4px;font-size:.72rem;color:var(--muted);white-space:nowrap}
+
+
+.hero2{display:flex;align-items:center;gap:16px}
+.hero2 h3{font-size:1.25rem;font-weight:800}
+.hero2 p{color:var(--muted);font-size:.92rem}
+.ring{width:104px;height:104px;flex:none;display:block}
+.tiles3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{background:var(--soft);border:0;border-radius:14px;padding:10px 10px 9px;display:grid;gap:3px;text-align:left;min-width:0;color:var(--ink)}
+.tile small{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:5px}
+.tile small .ic{width:18px;height:18px}
+.tile b{font-family:var(--display);font-weight:800;font-size:clamp(1.15rem,5.2vw,1.55rem);font-variant-numeric:tabular-nums;line-height:1.05}
+.tile.t-spent b{color:var(--teal)} .tile.t-est b{color:var(--gold-deep)}
+.tile.t-idea{box-shadow:inset 0 -4px 0 var(--gold)} .tile.t-bought{box-shadow:inset 0 -4px 0 var(--teal)} .tile.t-wrapped{box-shadow:inset 0 -4px 0 var(--cherry)}
+.mbar{position:relative;height:16px;border-radius:999px;background:var(--track);margin-top:12px}
+.mbar i{position:absolute;top:0;bottom:0;left:0;border-radius:999px}
+.mbar .est{background:repeating-linear-gradient(135deg,var(--gold) 0 6px,color-mix(in srgb,var(--gold) 55%,transparent) 6px 12px)}
+.mbar .sp{background:var(--teal)}
+.mbar .bud{position:absolute;top:-5px;bottom:-5px;width:3px;border-radius:2px;background:var(--ink);transform:translateX(-1.5px)}
+.legend .lb::before{background:var(--ink);width:3px;border-radius:1px}
+.mnote{margin-top:8px;font-weight:700;font-size:.95rem}
+.mnote.good{color:var(--good)} .mnote.bad{color:var(--bad)} .mnote.none{color:var(--muted);font-weight:400}
+.sbar{display:flex;height:16px;border-radius:999px;overflow:hidden;background:var(--track);gap:2px}
+.sbar i{display:block;height:100%}
+.jobline{margin-top:12px;width:100%;border:0;background:none;padding:10px 0 0;border-top:1px solid var(--line);display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 10px;align-items:center;text-align:left;color:var(--ink)}
+.jobline .ic{grid-row:1 / 3}
+.jobline b{font-family:var(--display)}
+.jobline small{color:var(--muted);font-size:.86rem}
+.jobline .pb{grid-column:2 / 4;height:7px;border-radius:999px;background:var(--track);overflow:hidden}
+.jobline .pb i{display:block;height:100%;background:var(--plum);border-radius:999px}
+.hp{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 12px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:9px 0;border-bottom:1px solid var(--line);color:var(--ink)}
+.hp:last-child{border-bottom:0}
+.hp .stock{grid-row:1 / 3;width:42px;height:42px}
+.hp .nm{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.hp .nm b{font-family:var(--display);font-size:1.05rem}
+.hp .amt{text-align:right;font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hp .amt b{font-family:var(--display);font-size:.98rem;color:var(--ink)}
+.hp .pbar{grid-column:2 / 4;position:relative;height:7px;border-radius:999px;background:var(--track);overflow:hidden}
+.hp .pbar i{position:absolute;top:0;bottom:0;left:0;border-radius:999px}
+.hp .pbar .est{background:repeating-linear-gradient(135deg,var(--gold) 0 5px,color-mix(in srgb,var(--gold) 55%,transparent) 5px 10px)}
+.hp .pbar .sp{background:var(--teal)}
+.hp .pbar.over .sp{background:var(--bad)}
 
 /* ---------- People ---------- */
 .plist{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:2px 14px}
@@ -371,23 +412,26 @@ dialog::backdrop{background:rgba(12,28,25,.55)}
 
   <!-- HOME -->
   <section class="view" id="v-home">
-    <div class="card">
-      <div class="ready"><div class="big" id="h-overall">0%</div><div><h3 id="h-headline">Let's get Christmas sorted</h3><p id="h-sub">Tap a row to jump straight to it.</p></div></div>
-      <div class="prows" id="h-prows"></div>
+    <div class="card hero2">
+      <div id="h-ring"></div>
+      <div style="min-width:0;display:grid;gap:4px"><h3 id="h-headline">Let's get Christmas sorted</h3><p id="h-sub"></p></div>
     </div>
     <div class="card">
-      <div class="cardhead"><h3><svg class="ic"><use href="#i-star"/></svg>Do next</h3></div>
-      <div class="todos" id="h-todos"></div>
+      <div class="cardhead"><h3><svg class="ic"><use href="#i-bag"/></svg>Money</h3><span class="chip none" id="h-noprice" hidden></span></div>
+      <div class="tiles3" id="h-money"></div>
+      <div class="mbar" id="h-mbar"></div>
+      <div class="legend"><span>Spent</span><span class="lp">Ideas not bought yet</span><span class="lb">Budget</span></div>
+      <p class="mnote" id="h-mnote"></p>
     </div>
     <div class="card">
-      <div class="cardhead"><h3><svg class="ic"><use href="#i-stocking"/></svg>People</h3><button class="link" data-go="people">See all</button></div>
-      <div class="strip" id="h-strip"></div>
+      <div class="cardhead"><h3><svg class="ic"><use href="#i-gift"/></svg>Gifts</h3><span class="chip none" id="h-gcount">0 gifts</span></div>
+      <div class="sbar" id="h-sbar"></div>
+      <div class="tiles3" id="h-status" style="margin-top:10px"></div>
+      <button class="jobline" data-go="jobs" id="h-jobs"></button>
     </div>
     <div class="card">
-      <div class="cardhead" style="margin-bottom:4px"><h3><svg class="ic"><use href="#i-bag"/></svg>Budget</h3></div>
-      <div class="budget-line"><span>Spent <b id="s-spent">$0</b> of <b id="s-budget">$0</b></span><span class="left" id="s-left">$0 left</span></div>
-      <div class="bar" id="s-bar"><i class="plan"></i><i class="spent"></i></div>
-      <div class="legend"><span>Spent</span><span class="lp" id="s-plan-label">Ideas not bought yet</span></div>
+      <div class="cardhead"><h3><svg class="ic"><use href="#i-stocking"/></svg>People</h3><span class="chip none" id="h-pcount">0 people</span></div>
+      <div id="h-people"></div>
     </div>
   </section>
 
@@ -565,7 +609,7 @@ dialog::backdrop{background:rgba(12,28,25,.55)}
   const STATUS=["idea","bought","wrapped"];
   const SL={idea:"Idea",bought:"Bought",wrapped:"Wrapped"};
   const SICON={idea:"i-star",bought:"i-bag",wrapped:"i-gift"};
-  const STAGE={none:{t:"Needs an idea",c:"none",d:"var(--line)"},shop:{t:"Shopping",c:"warn",d:"var(--warn)"},wrap:{t:"To wrap",c:"info",d:"var(--info)"},done:{t:"All wrapped",c:"good",d:"var(--good)"}};
+  const STAGE={none:{t:"Needs an idea",c:"none",d:"var(--line)"},shop:{t:"Ideas to buy",c:"warn",d:"var(--warn)"},wrap:{t:"To wrap",c:"info",d:"var(--info)"},done:{t:"All wrapped",c:"good",d:"var(--good)"}};
   const JOB_IDEAS=["Buy wrapping paper, tape and tags","Write Christmas cards","Check last postage dates for interstate gifts","Plan Christmas Day food","Order the ham or seafood","Put up the tree and lights","Buy batteries for toys","Teacher and coach gifts","Stock up on ice and drinks","Charge the camera and phones","Plan what everyone is wearing","Book Boxing Day plans"];
   const S={people:[],gifts:[],jobs:[]};
   let db=null,sampleFn=null,view="home",prevView="home",personId=null,gStatus="all",gPerson="all",jobWhen="";
@@ -659,48 +703,53 @@ dialog::backdrop{background:rgba(12,28,25,.55)}
     return opts.filter((o,i,a)=>a.findIndex(x=>x[0]===o[0])===i);
   }
 
-  /* ---------- Do next ---------- */
-  function todos(){
-    const out=[];
-    if(!S.people.length)return [`<div class="todo">${ic("i-stocking")}<span class="tx">Add the first person on your list</span><button class="btn small" data-act="add-person">Add</button></div>`];
-    S.people.filter(p=>{const s=pstats(p);return s.budget!==null&&s.spent>s.budget}).slice(0,1).forEach(p=>out.push(`<div class="todo">${ic("i-bag")}<button class="tx" data-act="person:${esc(p.id)}"><b>${esc(p.name)}</b> is over budget<small>Tap to review</small></button></div>`));
-    const bought=S.gifts.filter(g=>g.status==="bought");
-    bought.slice(0,2).forEach(g=>out.push(`<div class="todo">${ic("i-gift")}<button class="tx" data-edit-gift="${esc(g.id)}">Wrap <b>${esc(g.title)}</b><small>For ${esc(nameOf(g.personId))}${g.hidden?" · hidden: "+esc(g.hidden):""}</small></button><button class="btn small" data-act="status:${esc(g.id)}:wrapped">Wrapped</button></div>`));
-    const ideas=S.gifts.filter(g=>g.status==="idea").sort((a,b)=>(b.link?1:0)-(a.link?1:0));
-    ideas.slice(0,2).forEach(g=>out.push(`<div class="todo">${ic("i-bag")}<button class="tx" data-edit-gift="${esc(g.id)}">Buy <b>${esc(g.title)}</b><small>For ${esc(nameOf(g.personId))}${g.price?" · "+money(+g.price):""}</small></button><button class="btn small teal" data-act="status:${esc(g.id)}:bought">Bought</button></div>`));
-    const noIdeas=sortedPeople().filter(p=>!pstats(p).n);
-    noIdeas.slice(0,2).forEach(p=>out.push(`<div class="todo">${ic("i-star")}<button class="tx" data-act="person:${esc(p.id)}"><b>${esc(p.name)}</b> needs a gift idea</button><button class="btn small gold" data-act="quick:${esc(p.id)}">+ Idea</button></div>`));
-    sortJobs(S.jobs.filter(j=>!j.done)).slice(0,2).forEach(j=>out.push(jobRow(j,"todo")));
-    if(!out.length)out.push(`<div class="todo">${ic("i-tree")}<span class="tx"><b>Everything is sorted.</b> Pour a cold drink and enjoy it!</span></div>`);
-    return out.slice(0,6);
-  }
-
   /* ---------- Render ---------- */
   function render(){renderHome();renderPeople();renderPerson();renderGifts();renderJobs();tick()}
 
+  function bigRing(pct){
+    const c=2*Math.PI*42,len=Math.max(0,Math.min(1,pct))*c;
+    return `<svg class="ring" viewBox="0 0 104 104" role="img" aria-label="${Math.round(pct*100)} percent ready"><circle cx="52" cy="52" r="42" style="fill:none;stroke:var(--track);stroke-width:12"/>${len>0?`<circle cx="52" cy="52" r="42" style="fill:none;stroke:var(--cherry);stroke-width:12;stroke-linecap:round;stroke-dasharray:${len} ${c};transform:rotate(-90deg);transform-origin:50% 50%"/>`:""}<text x="52" y="54" text-anchor="middle" style="fill:var(--ink);font:800 26px var(--display)">${Math.round(pct*100)}%</text><text x="52" y="71" text-anchor="middle" style="fill:var(--muted);font:700 11px var(--body);letter-spacing:.08em">READY</text></svg>`;
+  }
+  function tile(cls,icon,label,val,act){return `<${act?`button data-act="${act}"`:"div"} class="tile ${cls}"><small>${icon?ic(icon):""}${label}</small><b>${val}</b></${act?"button":"div"}>`}
+
   function renderHome(){
     const T=totals();readyPct=Math.round(T.overall*100);
-    $("h-overall").textContent=readyPct+"%";
-    const head=!T.P?["Let's get Christmas sorted","Add the people you're buying for."]
-      :T.overall>=1?["Christmas is sorted!","Every gift wrapped, every job done."]
+    $("h-ring").innerHTML=bigRing(T.overall);
+    const head=!T.P?["Let's get Christmas sorted","Add the people you're buying for to see your progress."]
+      :T.overall>=1?["Christmas is sorted!","Every gift wrapped and every job done."]
       :T.overall>=.6?["Finish line in sight","You're well ahead of the rush."]
       :T.overall>=.25?["Nicely underway","Little and often gets it done."]
-      :["Off to a festive start","Tap a row to jump straight to it."];
-    $("h-headline").textContent=head[0];$("h-sub").textContent=head[1];
-    const rows=[
-      {k:"Planning",ic:"i-star",col:"var(--gold)",p:T.parts[0],t:`${T.planned} of ${T.P} people`,go:"people"},
-      {k:"Shopping",ic:"i-bag",col:"var(--teal)",p:T.parts[1],t:`${T.GB} of ${T.G} bought`,go:"filter:idea"},
-      {k:"Wrapping",ic:"i-gift",col:"var(--cherry)",p:T.parts[2],t:`${T.GW} of ${T.G} wrapped`,go:"filter:bought"},
-      {k:"Jobs",ic:"i-bell",col:"var(--plum)",p:T.parts[3],t:`${T.JD} of ${T.JT} done`,go:"jobs"}];
-    $("h-prows").innerHTML=rows.map(r=>`<button class="prow" data-act="${r.go}">${ic(r.ic)}<b>${r.k}</b><small>${r.t}</small><span class="pb"><i style="width:${Math.round(r.p*100)}%;background:${r.col}"></i></span></button>`).join("");
-    $("h-todos").innerHTML=todos().join("");
-    $("s-spent").textContent=money(T.ts);$("s-budget").textContent=money(T.tb);
-    const left=T.tb-T.ts;$("s-left").textContent=money(Math.abs(left))+(left<0?" over":" left");$("s-left").classList.toggle("over",left<0);
-    $("s-plan-label").textContent="Ideas not bought ("+money(T.tp)+")";
-    setBar($("s-bar"),T.ts,T.tp,T.tb||null);
-    $("h-strip").innerHTML=S.people.length?sortedPeople().map(p=>{const s=pstats(p);
-      return `<button class="sp" data-act="person:${esc(p.id)}">${stocking(p)}<b>${esc(p.name)}</b><small><span class="dot" style="background:${STAGE[s.stage].d}"></span>${s.n} ${plural(s.n,"gift")}</small></button>`}).join("")+`<button class="sp" data-act="add-person"><svg class="stock" viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="6" width="36" height="36" rx="12" style="fill:none;stroke:var(--line);stroke-width:2.5;stroke-dasharray:5 4"/><path d="M24 16v16M16 24h16" style="stroke:var(--muted);stroke-width:3;stroke-linecap:round"/></svg><b>Add</b><small>&nbsp;</small></button>`
-      :`<div class="empty" style="flex:1">${ic("i-stocking")}<h3>No one here yet</h3><button class="btn small" data-act="add-person">Add a person</button></div>`;
+      :["Off to a festive start","Plenty of time to get it all sorted."];
+    const sorted=S.people.filter(p=>pstats(p).stage==="done").length;
+    $("h-headline").textContent=head[0];
+    $("h-sub").textContent=head[1]+(T.P?` ${sorted} of ${T.P} ${plural(T.P,"person","people")} fully wrapped.`:"");
+
+    const est=T.ts+T.tp;
+    $("h-money").innerHTML=tile("","","Budget",money(T.tb))+tile("t-est","","Estimate",money(est))+tile("t-spent","","Spent",money(T.ts));
+    const scale=Math.max(T.tb,est,1);
+    $("h-mbar").innerHTML=`<i class="est" style="width:${est/scale*100}%"></i><i class="sp" style="width:${T.ts/scale*100}%"></i>${T.tb?`<span class="bud" style="left:${T.tb/scale*100}%"></span>`:""}`;
+    const nm=$("h-mnote");
+    if(!T.tb){nm.className="mnote none";nm.textContent="Add a budget for each person to track spending."}
+    else if(est>T.tb){nm.className="mnote bad";nm.textContent=`Estimate is ${money(est-T.tb)} over budget`}
+    else{nm.className="mnote good";nm.textContent=`${money(T.tb-est)} still free after your ideas`}
+    const noPrice=S.gifts.filter(g=>g.price==null||g.price==="").length;
+    $("h-noprice").hidden=!noPrice;$("h-noprice").textContent=`${noPrice} ${plural(noPrice,"gift")} with no price`;
+
+    const I=T.G-T.GB,B=T.GB-T.GW,W=T.GW;
+    $("h-gcount").textContent=`${T.G} ${plural(T.G,"gift")}`;
+    $("h-sbar").innerHTML=T.G?`<i style="width:${W/T.G*100}%;background:var(--cherry)"></i><i style="width:${B/T.G*100}%;background:var(--teal)"></i><i style="width:${I/T.G*100}%;background:var(--gold)"></i>`:"";
+    $("h-status").innerHTML=tile("t-idea","i-star","Ideas",I,"filter:idea")+tile("t-bought","i-bag","Bought",B,"filter:bought")+tile("t-wrapped","i-gift","Wrapped",W,"filter:wrapped");
+    $("h-jobs").innerHTML=`${ic("i-bell")}<b>Jobs</b><small>${T.JD} of ${T.JT} done</small><span class="pb"><i style="width:${T.JT?T.JD/T.JT*100:0}%"></i></span>`;
+
+    $("h-pcount").textContent=`${T.P} ${plural(T.P,"person","people")}`;
+    $("h-people").innerHTML=S.people.length?sortedPeople().map(p=>{
+      const s=pstats(p);const e=s.spent+s.plan;const sc=Math.max(s.budget||0,e,1);
+      return `<button class="hp" data-act="person:${esc(p.id)}">${stocking(p)}
+        <span class="nm"><b>${esc(p.name)}</b><span class="chip ${STAGE[s.stage].c}">${STAGE[s.stage].t}</span></span>
+        <span class="amt"><b>${money(s.spent)}</b>${s.budget===null?" no budget":" of "+money(s.budget)}</span>
+        <span class="pbar${s.budget!==null&&s.spent>s.budget?" over":""}"><i class="est" style="width:${e/sc*100}%"></i><i class="sp" style="width:${s.spent/sc*100}%"></i></span>
+      </button>`}).join("")
+      :`<div class="empty">${ic("i-stocking")}<h3>No one here yet</h3><button class="btn small" data-act="add-person">Add a person</button></div>`;
   }
 
   function renderPeople(){
